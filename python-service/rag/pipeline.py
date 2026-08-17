@@ -16,6 +16,8 @@ from .store import Store
 PROMPT = """Answer the question using only the notes below.
 Cite the notes you use like [1] or [2].
 If the notes do not contain the answer, say you do not know.
+Write plain prose. Do not use markdown, bullet points or asterisks — the
+answer is displayed as text, so any formatting shows up as literal symbols.
 
 Notes:
 {context}
