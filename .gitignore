@@ -1,0 +1,18 @@
+# secrets
+.env
+
+# python
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# node
+node_modules/
+dist/
+
+# macos
+.DS_Store
+
+# local postgres data directory (pgserver)
+.pgdata/
