@@ -14,6 +14,30 @@ export interface Hit {
   score: number;
 }
 
+/** A provider that refused before another one answered. */
+export interface Attempt {
+  provider: string;
+  model: string;
+  status: number;
+  message: string;
+}
+
+export interface Provider {
+  name: string;
+  model: string;
+  ready: boolean;
+  in_chain: boolean;
+}
+
+export interface AskResult {
+  question: string;
+  answer: string;
+  provider: string;
+  model: string;
+  fallbacks: Attempt[];
+  hits: Hit[];
+}
+
 export class RagServiceError extends Error {
   constructor(
     public readonly status: number,
@@ -69,11 +93,13 @@ export const ragClient = {
     return call<{ query: string; hits: Hit[] }>(`/search?${params}`);
   },
 
-  ask(question: string, k: number) {
-    return call<{ question: string; answer: string; hits: Hit[] }>(
-      "/ask",
-      jsonPost({ question, k }),
-    );
+  /** `provider` pins one model and disables fallback. */
+  ask(question: string, k: number, provider?: string) {
+    return call<AskResult>("/ask", jsonPost({ question, k, provider }));
+  },
+
+  providers() {
+    return call<Provider[]>("/providers");
   },
 
   deleteDocument(documentId: string) {

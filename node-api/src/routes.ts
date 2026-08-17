@@ -55,6 +55,15 @@ routes.get("/health", (_request, response) => {
   response.json({ status: "ok" });
 });
 
+/** Feeds the model picker: which providers exist and which have a key. */
+routes.get("/providers", async (_request, response, next) => {
+  try {
+    response.json(await ragClient.providers());
+  } catch (error) {
+    next(error);
+  }
+});
+
 routes.get("/documents", async (_request, response, next) => {
   try {
     const { rows } = await pool.query<DocumentRow>(
@@ -135,11 +144,19 @@ routes.post("/ask", async (request, response, next) => {
   const question = readString(request.body?.question);
   if (!question) return response.status(400).json({ error: "question is required" });
 
+  const provider =
+    typeof request.body?.provider === "string" ? request.body.provider : undefined;
+
   try {
-    const result = await ragClient.ask(question, readK(request.body?.k));
+    const result = await ragClient.ask(question, readK(request.body?.k), provider);
     response.json({
       question,
       answer: result.answer,
+      // Which model actually answered, and who refused first — so a fallback
+      // is visible in the UI rather than silently swapped in.
+      provider: result.provider,
+      model: result.model,
+      fallbacks: result.fallbacks,
       hits: await withTitles(result.hits),
     });
   } catch (error) {
