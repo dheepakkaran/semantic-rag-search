@@ -3,7 +3,7 @@
  * once instead of in each component.
  */
 
-import type { AskResult, DocumentRow, Hit, SearchResult } from "./types";
+import type { AskResult, DocumentRow, Hit, Provider, SearchResult } from "./types";
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`/api${path}`, {
@@ -43,10 +43,15 @@ export const api = {
     return { kind: "search", ...body };
   },
 
-  async ask(question: string): Promise<AskResult> {
-    const body = await call<{ question: string; answer: string; hits: Hit[] }>("/ask", {
+  listProviders() {
+    return call<Provider[]>("/providers");
+  },
+
+  /** `provider` pins one model; leaving it out allows automatic fallback. */
+  async ask(question: string, provider?: string): Promise<AskResult> {
+    const body = await call<Omit<AskResult, "kind">>("/ask", {
       method: "POST",
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({ question, provider }),
     });
     return { kind: "ask", ...body };
   },

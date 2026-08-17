@@ -1,4 +1,4 @@
-import type { Hit, Result } from "../types";
+import type { AskResult, Hit, Result } from "../types";
 
 /**
  * Shows either a ranked list of passages (search) or an answer followed by the
@@ -19,7 +19,13 @@ export function ResultPanel({
     <section className="result rise">
       {result.kind === "ask" && (
         <>
+          {result.fallbacks.length > 0 && <FallbackNotice result={result} />}
           <p className="answer">{result.answer}</p>
+          {result.model && (
+            <p className="byline">
+              answered by <strong>{result.model}</strong>
+            </p>
+          )}
           <h2 className="section-label">Grounded on</h2>
         </>
       )}
@@ -42,6 +48,33 @@ export function ResultPanel({
         </ol>
       )}
     </section>
+  );
+}
+
+/**
+ * Says which model stepped aside and why.
+ *
+ * Worth showing rather than swapping silently: the answer came from a
+ * different model than the one selected, and a reader comparing two answers
+ * should know that. 429 is the case this exists for — the Gemini free tier
+ * allows twenty generations a day.
+ */
+function FallbackNotice({ result }: { result: AskResult }) {
+  return (
+    <div className="fallback rise-sm" role="status">
+      <span className="fallback-mark" aria-hidden="true" />
+      <span>
+        {result.fallbacks.map((attempt) => (
+          <span key={attempt.provider} className="fallback-line">
+            <strong>{attempt.provider}</strong>{" "}
+            {attempt.status === 429 ? "hit its rate limit" : `refused (${attempt.status})`}
+          </span>
+        ))}
+        <span className="fallback-line">
+          answered with <strong>{result.model}</strong> instead, from the same passages
+        </span>
+      </span>
+    </div>
   );
 }
 

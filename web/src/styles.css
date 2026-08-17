@@ -87,6 +87,114 @@ textarea {
   background: var(--wash);
 }
 
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ── model picker ────────────────────────────────────────────────────────── */
+
+.picker {
+  position: relative;
+}
+
+.picker-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: none;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.picker-button:hover,
+.picker-button[aria-expanded="true"] {
+  border-color: var(--ink);
+  background: var(--wash);
+}
+
+/* Hollow on Auto, filled once a model is pinned — the whole state in 6px. */
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--muted);
+}
+
+.dot.pinned {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.picker-menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 10;
+  min-width: 15rem;
+  display: flex;
+  flex-direction: column;
+  background: var(--page);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 0.3rem;
+  box-shadow: 0 8px 24px rgba(38, 38, 39, 0.1);
+}
+
+.picker-option {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 7px;
+  padding: 0.5rem 0.6rem;
+  cursor: pointer;
+  transition: background 0.12s var(--ease);
+}
+
+.picker-option:hover:not(:disabled) {
+  background: var(--wash);
+}
+
+.picker-option.on {
+  background: var(--wash);
+}
+
+.picker-option:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.picker-name {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.picker-sub {
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.picker-tag {
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  padding: 0 0.28rem;
+}
+
 .badge {
   min-width: 1.25rem;
   padding: 0 0.3rem;
@@ -236,6 +344,97 @@ kbd {
 
 .rise {
   animation: rise 0.34s var(--ease) both;
+}
+
+.rise-sm {
+  animation: rise 0.22s var(--ease) both;
+}
+
+/* ── waiting on a model ──────────────────────────────────────────────────── */
+
+/* A bar that sweeps rather than fills: the wait has no known duration, and a
+   progress bar that guesses is a small lie. */
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(280%);
+  }
+}
+
+.waiting {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.waiting-track {
+  width: 34px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--hairline);
+  overflow: hidden;
+}
+
+.waiting-fill {
+  display: block;
+  width: 36%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ink);
+  animation: sweep 1.1s var(--ease) infinite;
+}
+
+/* ── fallback notice ─────────────────────────────────────────────────────── */
+
+.fallback {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  background: var(--wash);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 1.1rem;
+  font-size: 0.84rem;
+  color: var(--ink-soft);
+}
+
+.fallback-line {
+  display: block;
+}
+
+/* A slow pulse, not a warning triangle. Falling back worked — it is worth
+   mentioning, not worth alarming anyone about. */
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.82);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.fallback-mark {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-top: 0.42rem;
+  border-radius: 999px;
+  background: var(--ink);
+  animation: breathe 2.4s ease-in-out infinite;
+}
+
+.byline {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: -1.7rem 0 2.5rem;
 }
 
 .result {

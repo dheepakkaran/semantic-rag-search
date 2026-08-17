@@ -2,13 +2,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { api } from "./api";
 import { DocumentPanel } from "./components/DocumentPanel";
+import { ModelPicker } from "./components/ModelPicker";
 import { ResultPanel } from "./components/ResultPanel";
-import type { DocumentRow, Result } from "./types";
+import type { DocumentRow, Provider, Result } from "./types";
 
 type Mode = "ask" | "search";
 
 export default function App() {
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
+  const [providers, setProviders] = useState<Provider[]>([]);
+  // null = Auto: walk the chain, fall back when a provider refuses.
+  const [provider, setProvider] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -31,6 +35,7 @@ export default function App() {
 
   useEffect(() => {
     void refresh();
+    api.listProviders().then(setProviders).catch(() => setProviders([]));
   }, [refresh]);
 
   async function run(event: React.FormEvent) {
@@ -40,7 +45,11 @@ export default function App() {
     setBusy(true);
     setError(null);
     try {
-      setResult(mode === "ask" ? await api.ask(query.trim()) : await api.search(query.trim()));
+      setResult(
+        mode === "ask"
+          ? await api.ask(query.trim(), provider ?? undefined)
+          : await api.search(query.trim()),
+      );
     } catch (cause) {
       setResult(null);
       setError(cause instanceof Error ? cause.message : "request failed");
@@ -81,15 +90,24 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <span className="wordmark">Semantic RAG Search</span>
-        <button
-          type="button"
-          className="notes-toggle"
-          aria-expanded={notesOpen}
-          onClick={() => setNotesOpen((open) => !open)}
-        >
-          Notes
-          {documents.length > 0 && <span className="badge">{documents.length}</span>}
-        </button>
+        <div className="topbar-right">
+          {providers.length > 0 && (
+            <ModelPicker
+              providers={providers}
+              selected={provider}
+              onSelect={setProvider}
+            />
+          )}
+          <button
+            type="button"
+            className="notes-toggle"
+            aria-expanded={notesOpen}
+            onClick={() => setNotesOpen((open) => !open)}
+          >
+            Notes
+            {documents.length > 0 && <span className="badge">{documents.length}</span>}
+          </button>
+        </div>
       </header>
 
       {notesOpen && (
@@ -132,9 +150,18 @@ export default function App() {
             <button type="submit" className="primary" disabled={!query.trim() || busy}>
               {busy ? "Thinking…" : mode === "ask" ? "Ask" : "Search"}
             </button>
-            <span className="enter-hint">
-              Press <kbd>Enter</kbd> ↵
-            </span>
+            {busy && mode === "ask" ? (
+              <span className="waiting" aria-hidden="true">
+                <span className="waiting-track">
+                  <span className="waiting-fill" />
+                </span>
+                asking {provider ?? providers.find((p) => p.in_chain && p.ready)?.name ?? "the model"}
+              </span>
+            ) : (
+              <span className="enter-hint">
+                Press <kbd>Enter</kbd> ↵
+              </span>
+            )}
 
             <div className="mode-toggle" role="group" aria-label="Mode">
               <button
