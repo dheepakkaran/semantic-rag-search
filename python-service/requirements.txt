@@ -5,9 +5,9 @@ fastapi>=0.115
 uvicorn[standard]>=0.30
 pymongo>=4.8
 
-# Default generation provider.
+# Generation providers. Gemini leads the default chain, OpenAI is the fallback.
 google-genai>=1.0
+openai>=1.0
 
-# Optional providers — install only if you switch LLM_PROVIDER to them.
-# openai>=1.0
+# Optional: only needed for LLM_PROVIDER_CHAIN entries that use it.
 # ollama>=0.3

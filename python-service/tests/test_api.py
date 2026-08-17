@@ -7,6 +7,8 @@ network and no cost — which is what lets them run on every push in CI.
 import pytest
 from fastapi.testclient import TestClient
 
+from rag.llm import Generation, LLMError
+
 NOTES = (
     "Cosine similarity compares the angle between two vectors and ignores "
     "their length. If the vectors are already unit length, the cosine is just "
@@ -50,9 +52,13 @@ def test_ask_grounds_the_answer_in_retrieved_passages(client, monkeypatch):
 
     seen = {}
 
-    def fake_generate(prompt: str) -> str:
+    def fake_generate(prompt: str, provider=None):
         seen["prompt"] = prompt
-        return "Cosine similarity, which is a dot product for unit vectors [1]."
+        return Generation(
+            "Cosine similarity, which is a dot product for unit vectors [1].",
+            "mock",
+            "mock",
+        )
 
     monkeypatch.setattr("rag.pipeline.generate", fake_generate)
 
@@ -67,7 +73,7 @@ def test_ask_grounds_the_answer_in_retrieved_passages(client, monkeypatch):
 
 
 def test_ask_with_nothing_ingested_says_so_without_calling_the_model(client, monkeypatch):
-    def explode(prompt: str) -> str:
+    def explode(prompt: str, provider=None):
         raise AssertionError("the model must not be called when there is nothing to cite")
 
     monkeypatch.setattr("rag.pipeline.generate", explode)
@@ -93,9 +99,7 @@ def test_provider_quota_error_keeps_its_status(client, monkeypatch):
     actually meets. Telling them the service is broken sends them looking for
     a bug instead of waiting a minute.
     """
-    from rag.llm import LLMError
-
-    def out_of_quota(prompt: str) -> str:
+    def out_of_quota(prompt: str, provider=None):
         raise LLMError(429, "429 RESOURCE_EXHAUSTED. Quota exceeded, retry in 34s")
 
     monkeypatch.setattr("rag.pipeline.generate", out_of_quota)
@@ -108,8 +112,8 @@ def test_provider_quota_error_keeps_its_status(client, monkeypatch):
 
 
 def test_missing_api_key_reports_unavailable(client, monkeypatch):
-    def no_key(prompt: str) -> str:
-        raise RuntimeError("GEMINI_API_KEY is not set.")
+    def no_key(prompt: str, provider=None):
+        raise LLMError(503, "GEMINI_API_KEY is not set.")
 
     monkeypatch.setattr("rag.pipeline.generate", no_key)
     client.post("/ingest", json={"document_id": "embeddings", "text": NOTES})
