@@ -34,7 +34,18 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   if (!response.ok) {
-    throw new RagServiceError(response.status, await response.text());
+    // FastAPI reports problems as { detail }. Unwrap it, so the browser gets
+    // "quota exceeded, retry in 34s" rather than that sentence buried inside a
+    // stringified JSON body inside another JSON body.
+    const body = await response.text();
+    let message = body;
+    try {
+      const parsed = JSON.parse(body) as { detail?: unknown };
+      if (typeof parsed.detail === "string") message = parsed.detail;
+    } catch {
+      // Not JSON — keep the raw text, which is still better than nothing.
+    }
+    throw new RagServiceError(response.status, message);
   }
   return (await response.json()) as T;
 }
