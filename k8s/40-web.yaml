@@ -12,10 +12,17 @@ spec:
     spec:
       containers:
         - name: web
-          image: semantic-rag-search/web:latest
+          image: semantic-rag-search-web:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
+          env:
+            # nginx's resolver queries this name verbatim — it does not apply
+            # the search domains from resolv.conf — so it has to be the fully
+            # qualified service name here. Under Compose the short name works
+            # and the image's default is used instead.
+            - name: NODE_API_UPSTREAM
+              value: http://node-api.default.svc.cluster.local:3001
           readinessProbe:
             httpGet: { path: /, port: 80 }
             initialDelaySeconds: 3

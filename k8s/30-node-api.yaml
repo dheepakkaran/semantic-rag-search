@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: node-api
-          image: semantic-rag-search/node-api:latest
+          image: semantic-rag-search-node-api:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3001

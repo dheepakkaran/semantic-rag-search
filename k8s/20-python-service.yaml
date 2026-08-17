@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
         - name: python-service
-          image: semantic-rag-search/python-service:latest
+          image: semantic-rag-search-python-service:latest
           # minikube builds images straight into its own daemon, so there is
           # nothing to pull from a registry.
           imagePullPolicy: IfNotPresent
@@ -22,12 +22,15 @@ spec:
             - name: MONGO_URI
               valueFrom:
                 configMapKeyRef: { name: rag-config, key: MONGO_URI }
-            - name: LLM_PROVIDER
+            - name: LLM_PROVIDER_CHAIN
               valueFrom:
-                configMapKeyRef: { name: rag-config, key: LLM_PROVIDER }
+                configMapKeyRef: { name: rag-config, key: LLM_PROVIDER_CHAIN }
             - name: GEMINI_API_KEY
               valueFrom:
                 secretKeyRef: { name: rag-secrets, key: GEMINI_API_KEY }
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef: { name: rag-secrets, key: OPENAI_API_KEY }
           # Liveness restarts a wedged container; readiness keeps traffic away
           # until the embedding model has finished loading, which takes a few
           # seconds after start.

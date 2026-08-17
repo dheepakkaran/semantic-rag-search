@@ -1,4 +1,19 @@
 # Non-secret settings shared by the services.
+#
+# The API keys are deliberately NOT here. An empty placeholder Secret in this
+# file would be applied along with everything else and would silently wipe the
+# real keys on every `kubectl apply -f k8s/`. Create them once instead:
+#
+#   kubectl create secret generic rag-secrets \
+#     --from-literal=GEMINI_API_KEY=... \
+#     --from-literal=OPENAI_API_KEY=...
+#
+# Or from the .env file already on disk:
+#
+#   set -a; . ./.env; set +a
+#   kubectl create secret generic rag-secrets \
+#     --from-literal=GEMINI_API_KEY="$GEMINI_API_KEY" \
+#     --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY"
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,20 +22,5 @@ data:
   MONGO_URI: mongodb://mongo:27017
   DATABASE_URL: postgres://rag:rag@postgres:5432/rag
   RAG_SERVICE_URL: http://python-service:8000
-  LLM_PROVIDER: gemini
----
-# The API key is the one value that must not sit in a ConfigMap. Created from
-# the command line rather than committed:
-#
-#   kubectl create secret generic rag-secrets \
-#     --from-literal=GEMINI_API_KEY=your-key-here
-#
-# This placeholder keeps `kubectl apply -f k8s/` working before that; it is
-# overwritten by the command above.
-apiVersion: v1
-kind: Secret
-metadata:
-  name: rag-secrets
-type: Opaque
-stringData:
-  GEMINI_API_KEY: ""
+  # Gemini first; OpenAI takes over when the daily free-tier quota runs out.
+  LLM_PROVIDER_CHAIN: gemini,openai
