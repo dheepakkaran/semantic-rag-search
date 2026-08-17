@@ -1,0 +1,99 @@
+# Runs on every push and pull request.
+#
+# No job here needs a database, a language model or an API key: the Python
+# tests use the in-memory store and a mocked generate(), and the Node tests
+# mock both PostgreSQL and the retrieval service. That is what keeps CI free,
+# fast and free of flakes.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  python:
+    name: python-service
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python-service
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: python-service/requirements.txt
+
+      - run: pip install -r requirements.txt pytest
+
+      - name: Cache the embedding model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-all-MiniLM-L6-v2
+
+      - run: pytest -q
+
+  node-api:
+    name: node-api
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: node-api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: node-api/package-lock.json
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+  web:
+    name: web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+      - run: npm run build
+
+  images:
+    name: docker images
+    runs-on: ubuntu-latest
+    # Only worth building images once the code that goes in them is known good.
+    needs: [python, node-api, web]
+    strategy:
+      matrix:
+        service: [python-service, node-api, web]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Build only — pushing needs registry credentials, which this repository
+      # does not have. Proves the Dockerfiles work.
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.service }}
+          push: false
+          tags: semantic-rag-search/${{ matrix.service }}:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
