@@ -8,6 +8,21 @@ words in the source. Asking *"how do I stop my network memorising?"* should
 find the paragraph about dropout and weight decay, and it does — none of those
 words appear in the question.
 
+![The answer, with the passages it was built from underneath](docs/ui-answer.png)
+
+<details>
+<summary>More screenshots</summary>
+
+Before asking anything:
+
+![The empty state](docs/ui-hero.png)
+
+Managing the notes that get searched:
+
+![The notes panel](docs/ui-notes.png)
+
+</details>
+
 ## What it does
 
 Two endpoints, because retrieval and generation are separately useful:
