@@ -1,0 +1,55 @@
+Lecture 3 — Training neural networks
+
+A neural network starts with random weights, so its first predictions are no
+better than guessing. Training is the process of nudging those weights until
+the predictions stop being wrong so often. The quantity we are trying to make
+small is called the loss: it is a single number saying how far the current
+predictions sit from the correct answers.
+
+Gradient descent is how that nudging happens. For each weight we work out the
+slope of the loss with respect to that weight — the gradient — which tells us
+which direction makes the loss larger. We then step the weight the other way.
+The size of that step is the learning rate. Too large and the weights
+overshoot and the loss bounces around; too small and training crawls.
+
+Backpropagation is the bookkeeping that makes gradient descent affordable. A
+network is a chain of functions, so the chain rule from calculus lets us reuse
+work: compute the gradient at the output, then pass it backwards layer by
+layer, multiplying as we go. Without it we would need a separate pass per
+weight, which for millions of weights is hopeless.
+
+Lecture 4 — Overfitting and generalisation
+
+A model that has memorised its training set can score perfectly on that set
+and still be useless on anything new. This is overfitting: the model has
+learned the noise in the examples rather than the pattern behind them. The
+symptom is easy to spot — training loss keeps falling while validation loss
+starts climbing.
+
+The reason we hold out a validation set is precisely to see that split. Loss
+measured on data the model trained on tells you how well it memorised;
+loss on data it has never seen tells you whether it learned anything general.
+
+Regularisation is the family of tricks that push back against overfitting.
+Weight decay adds a penalty for large weights, which keeps the model from
+leaning too hard on any single input. Dropout randomly switches off units
+during training, so the network cannot rely on one particular path and has to
+spread the work. Early stopping simply halts training at the point where
+validation loss turns upward.
+
+More data helps more than any of these. A larger, more varied training set
+makes memorisation harder and the underlying pattern easier to find.
+
+Lecture 5 — Embeddings
+
+An embedding is a list of numbers that stands in for a piece of text, chosen
+so that texts with similar meanings land close together. Nearness is usually
+measured with cosine similarity, which compares the angle between two vectors
+and ignores their length. If the vectors are already scaled to unit length,
+the cosine is just their dot product.
+
+This is what makes meaning-based search possible. Keyword search can only
+match the words you typed, so a question phrased differently from the source
+text finds nothing. Comparing embeddings instead compares meaning, so a
+question and a passage that say the same thing in different words still score
+highly against each other.
