@@ -86,6 +86,40 @@ def test_deleting_a_document_removes_it_from_search(client):
     assert client.get("/search", params={"q": "cosine"}).json()["hits"] == []
 
 
+def test_provider_quota_error_keeps_its_status(client, monkeypatch):
+    """A 429 from the provider must not surface as a 500.
+
+    The free tier allows 20 generations a day, so this is the failure a user
+    actually meets. Telling them the service is broken sends them looking for
+    a bug instead of waiting a minute.
+    """
+    from rag.llm import LLMError
+
+    def out_of_quota(prompt: str) -> str:
+        raise LLMError(429, "429 RESOURCE_EXHAUSTED. Quota exceeded, retry in 34s")
+
+    monkeypatch.setattr("rag.pipeline.generate", out_of_quota)
+    client.post("/ingest", json={"document_id": "embeddings", "text": NOTES})
+
+    response = client.post("/ask", json={"question": "how is nearness measured?"})
+
+    assert response.status_code == 429
+    assert "Quota exceeded" in response.json()["detail"]
+
+
+def test_missing_api_key_reports_unavailable(client, monkeypatch):
+    def no_key(prompt: str) -> str:
+        raise RuntimeError("GEMINI_API_KEY is not set.")
+
+    monkeypatch.setattr("rag.pipeline.generate", no_key)
+    client.post("/ingest", json={"document_id": "embeddings", "text": NOTES})
+
+    response = client.post("/ask", json={"question": "how is nearness measured?"})
+
+    assert response.status_code == 503
+    assert "GEMINI_API_KEY" in response.json()["detail"]
+
+
 @pytest.mark.parametrize(
     "method,url,payload",
     [

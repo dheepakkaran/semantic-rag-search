@@ -18,6 +18,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from rag import ask, search_chunks
+from rag.llm import LLMError
 from rag.store import build_store
 
 load_dotenv()
@@ -96,6 +97,11 @@ def ask_question(request: AskRequest) -> AskResponse:
 
     try:
         answer, hits = ask(store, request.question, request.k)
+    except LLMError as exc:
+        # Pass the provider's own status through. A 429 for an exhausted quota
+        # is something the caller can wait out; reporting it as a 500 tells
+        # them to look for a bug that is not there.
+        raise HTTPException(status_code=exc.status, detail=str(exc)) from exc
     except RuntimeError as exc:
         # Raised when the chosen provider has no API key configured.
         raise HTTPException(status_code=503, detail=str(exc)) from exc
