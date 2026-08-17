@@ -75,7 +75,7 @@ service is the only thing the browser talks to.
 
 | Decision | Reason |
 |---|---|
-| NumPy, not a vector database | A few thousand chunks rank in milliseconds. One less moving part. |
+| NumPy, not a vector database | Ranking 5,000 chunks takes 0.08 ms — 2% of a query. [Measured below.](#performance) |
 | No LangChain | Writing the retrieval step directly is ~30 lines and leaves nothing hidden behind an abstraction. |
 | Embeddings local, generation hosted | Embedding is a bulk one-time job — no reason to spend API quota on it. Generation is where answer quality actually comes from. |
 | PostgreSQL **and** MongoDB | Document metadata is relational and gets joined against results. Chunks are variable-length text plus a vector, with no relationships — a document store fits better. |
@@ -95,6 +95,40 @@ Same document, same question (*"how does a model learn?"*), three settings:
 At 60 words the score went *up* and the answer went *wrong*: a chunk that
 small no longer holds enough context to be about any one thing. A higher
 similarity score is not the goal — retrieving the right passage is.
+
+## Performance
+
+Measured on an M-series MacBook, CPU only, with `deploy/bench.py`.
+
+| chunks | embedding throughput | retrieval p50 | p95 |
+|---|---|---|---|
+| 500 | 570 chunks/s | 3.7 ms | 3.9 ms |
+| 2,000 | 661 chunks/s | 3.8 ms | 4.3 ms |
+| 5,000 | 666 chunks/s | 4.6 ms | 6.8 ms |
+
+Retrieval barely moves as the corpus grows tenfold, and the reason is visible
+when a single query is split in two:
+
+```
+at 5,005 chunks
+  encoding the question   3.80 ms
+  ranking every chunk     0.08 ms   ← 2% of the query
+```
+
+**This is the case for not adding a vector database.** The part an index would
+speed up is 2% of the latency; the other 98% is one forward pass through the
+embedding model, which an index does not touch. At this corpus size a vector
+database would add a dependency, a container and a failure mode in exchange for
+saving 0.08 ms.
+
+That argument has a limit. The comparison is linear scan against an index, so
+it flips somewhere — the dot product grows with the corpus while an index does
+not. At a million chunks the scan is the bottleneck and the answer changes.
+The claim here is only that 5,000 is nowhere near that point.
+
+Embedding is a one-off cost per document at roughly 660 chunks/s, so a
+50-page document takes about a second. The 500-chunk row understates it
+slightly because the model load is included in the first run.
 
 ## Running it
 
