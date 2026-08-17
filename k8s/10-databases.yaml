@@ -1,0 +1,87 @@
+# PostgreSQL and MongoDB, each with a Deployment and a Service.
+#
+# Deployment, not StatefulSet: these use emptyDir, so data is lost when a pod
+# restarts. That is deliberate for a single-node demo cluster — a real
+# deployment wants a StatefulSet with a PersistentVolumeClaim, which needs a
+# storage class this manifest cannot assume exists.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: postgres }
+  template:
+    metadata:
+      labels: { app: postgres }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          env:
+            - { name: POSTGRES_USER, value: rag }
+            - { name: POSTGRES_PASSWORD, value: rag }
+            - { name: POSTGRES_DB, value: rag }
+            - { name: PGDATA, value: /var/lib/postgresql/data/pgdata }
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/postgresql/data }
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "rag"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector: { app: postgres }
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: mongo }
+  template:
+    metadata:
+      labels: { app: mongo }
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:7
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - { name: data, mountPath: /data/db }
+          readinessProbe:
+            exec:
+              command:
+                ["mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+spec:
+  selector: { app: mongo }
+  ports:
+    - port: 27017
+      targetPort: 27017
