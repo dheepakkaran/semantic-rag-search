@@ -1,0 +1,432 @@
+/* Visual language borrowed from Typeform: one thing in focus at a time, large
+   conversational type, a narrow centred column, generous whitespace, inputs
+   that are a rule rather than a box, a single near-black accent, and motion
+   that carries new content in from below.
+
+   What is deliberately not borrowed: the multi-step flow and progress bar.
+   This app asks one question, so there is no progress to show. */
+
+:root {
+  --ink: #262627; /* Typeform's near-black — the only accent */
+  --ink-soft: #4a4a4d;
+  --muted: #74747d; /* 4.59:1 on --page — AA for normal text (was #8a8a91, 3.40:1) */
+  --placeholder: #8a8a91; /* 3.40:1 — AA for the large hero input only */
+  --rule: #93939c; /* 3.02:1 — WCAG 1.4.11 minimum for an input's boundary */
+  --hairline: #e4e4e6;
+  --page: #fefefe;
+  --wash: #f7f7f8;
+  --error: #b3261e;
+
+  --column: 680px;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Helvetica, Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  line-height: 1.55;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* ── shell ───────────────────────────────────────────────────────────────── */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem clamp(1rem, 5vw, 2.5rem);
+}
+
+.wordmark {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.notes-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: none;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.notes-toggle:hover,
+.notes-toggle[aria-expanded="true"] {
+  border-color: var(--ink);
+  background: var(--wash);
+}
+
+.badge {
+  min-width: 1.25rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* ── the question, centred until it has been answered ────────────────────── */
+
+.stage {
+  flex: 1;
+  width: 100%;
+  max-width: var(--column);
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 5vw, 2rem) 5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* hero: vertically centred */
+}
+
+.stage.answered {
+  justify-content: flex-start;
+  padding-top: 1rem;
+}
+
+.eyebrow {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+/* A rule, not a box — the Typeform input treatment. */
+.big-input {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid var(--rule);
+  border-radius: 0;
+  background: none;
+  padding: 0.35rem 0 0.6rem;
+  font-size: clamp(1.5rem, 4.2vw, 2.15rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  transition: border-color 0.18s var(--ease);
+}
+
+.big-input::placeholder {
+  color: var(--placeholder);
+}
+
+.big-input:focus {
+  outline: none;
+  border-bottom-color: var(--ink);
+}
+
+.ask-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.primary {
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 0.62rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(38, 38, 39, 0.35);
+  transition: transform 0.14s var(--ease), opacity 0.14s var(--ease);
+}
+
+.primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.primary:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.enter-hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+kbd {
+  font-family: inherit;
+  font-size: 0.78rem;
+  border: 1px solid var(--hairline);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 0.08rem 0.34rem;
+  background: var(--wash);
+}
+
+/* Two words, not a dropdown — less chrome for a two-value choice. */
+.mode-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 0.15rem;
+  background: var(--wash);
+  border-radius: 999px;
+  padding: 0.15rem;
+}
+
+.mode-toggle button {
+  border: none;
+  background: none;
+  border-radius: 999px;
+  padding: 0.28rem 0.8rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.mode-toggle button.on {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
+}
+
+/* ── results ─────────────────────────────────────────────────────────────── */
+
+/* New content arrives from below rather than snapping into place. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.34s var(--ease) both;
+}
+
+.result {
+  margin-top: 3rem;
+}
+
+.answer {
+  overflow-wrap: break-word;
+  font-size: 1.16rem;
+  line-height: 1.62;
+  white-space: pre-wrap;
+  margin: 0 0 2.5rem;
+}
+
+.section-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 0.9rem;
+}
+
+.hits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hits li {
+  padding: 1.05rem 0;
+  border-top: 1px solid var(--hairline);
+}
+
+.hit-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+/* A number and a proportional rule: easier to compare at a glance than
+   four decimal places on their own. */
+.score {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.score-track {
+  width: 46px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--hairline);
+  overflow: hidden;
+}
+
+.score-fill {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
+
+.hits p {
+  margin: 0;
+  overflow-wrap: break-word;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+
+/* ── notes sheet ─────────────────────────────────────────────────────────── */
+
+.sheet {
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  background: var(--wash);
+  animation: rise 0.26s var(--ease) both;
+}
+
+.sheet-inner {
+  max-width: var(--column);
+  margin: 0 auto;
+  padding: 1.6rem clamp(1rem, 5vw, 2rem) 1.9rem;
+}
+
+.sheet-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.confirm {
+  display: inline-flex;
+  gap: 0.75rem;
+  white-space: nowrap;
+}
+
+.link.danger {
+  color: var(--error);
+}
+
+.sheet h2 {
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.4rem;
+}
+
+.field input,
+.field textarea {
+  border: 1px solid var(--rule);
+  border-radius: 7px;
+  background: #fff;
+  padding: 0.6rem 0.75rem;
+  resize: vertical;
+  transition: border-color 0.15s var(--ease);
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+
+.doc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.doc-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--hairline);
+  font-size: 0.92rem;
+}
+
+.link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link:hover {
+  color: var(--ink);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.error {
+  color: var(--error);
+  font-size: 0.9rem;
+  margin: 1.25rem 0 0;
+}
+
+/* Keyboard users get a visible focus ring; mouse users do not see one. */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
