@@ -45,8 +45,10 @@ services:
     build: ./python-service
     environment:
       MONGO_URI: mongodb://mongo:27017
+      LLM_PROVIDER_CHAIN: ${LLM_PROVIDER_CHAIN:-gemini,openai}
       LLM_PROVIDER: ${LLM_PROVIDER:-gemini}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     depends_on:
       mongo:
         condition: service_healthy
