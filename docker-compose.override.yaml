@@ -1,0 +1,27 @@
+# Local development only.
+#
+# Compose loads this file automatically alongside docker-compose.yaml, so
+# `docker compose up` locally publishes the database and service ports for
+# poking at with curl or a database client.
+#
+# The server never loads it, because the deploy command names the base file
+# explicitly:
+#
+#   docker compose -f docker-compose.yaml up -d --build
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  mongo:
+    ports:
+      - "27017:27017"
+
+  python-service:
+    ports:
+      - "8000:8000"
+
+  node-api:
+    ports:
+      - "3001:3001"
