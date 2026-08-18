@@ -8,20 +8,10 @@ words in the source. Asking *"how do I stop my network memorising?"* should
 find the paragraph about dropout and weight decay, and it does — none of those
 words appear in the question.
 
-![The answer, with the passages it was built from underneath](docs/ui-answer.png)
+[![Asking a question, and the passages the answer was built from](docs/demo-poster.png)](docs/demo.mp4)
 
-<details>
-<summary>More screenshots</summary>
-
-Before asking anything:
-
-![The empty state](docs/ui-hero.png)
-
-Managing the notes that get searched:
-
-![The notes panel](docs/ui-notes.png)
-
-</details>
+**▶ [Watch the demo](docs/demo.mp4)** (22 seconds) — recorded against the
+deployed instance.
 
 ## What it does
 

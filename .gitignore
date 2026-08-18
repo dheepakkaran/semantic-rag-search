@@ -16,3 +16,6 @@ dist/
 
 # local postgres data directory (pgserver)
 .pgdata/
+
+# raw screen recordings — the compressed docs/demo.mp4 is committed instead
+*.mov
