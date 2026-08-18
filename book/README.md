@@ -143,6 +143,17 @@ project was actually built, and each one leaves you with something that runs.
 If you are here for one thing — the nginx bug, the fallback logic, the cost
 model — the table of contents is a fair index and the chapters stand alone.
 
+## Every output here was produced by running it
+
+No output in this book is illustrative. Every number, every error message and
+every block of terminal output was copied from an actual run.
+
+That rule caught a mistake while writing Chapter 5: a worked example had
+plausible-looking scores that turned out to be wrong when the code was actually
+run — and the real numbers contained a surprise the invented ones had smoothed
+over. The chapter is better for it. If you run the commands and get something
+different, trust your terminal.
+
 ## Conventions
 
 Commands you type look like this:
