@@ -8,10 +8,10 @@ words in the source. Asking *"how do I stop my network memorising?"* should
 find the paragraph about dropout and weight decay, and it does — none of those
 words appear in the question.
 
-[![Asking a question, and the passages the answer was built from](docs/demo-poster.png)](docs/demo.mp4)
+![Asking a question, waiting for the model, and reading the passages the answer was built from](docs/demo.gif)
 
-**▶ [Watch the demo](docs/demo.mp4)** (22 seconds) — recorded against the
-deployed instance.
+*Recorded against the deployed instance. The wait for the model is shortened;
+nothing else is.*
 
 ## What it does
 
