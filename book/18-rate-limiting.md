@@ -146,9 +146,55 @@ Honest limits, because a rate limit invites overconfidence.
 **One IP, one limit.** Anyone with several addresses gets several allowances.
 Defending against that needs authentication, and this app has no accounts.
 
-**It is per instance.** Two containers behind a load balancer would each keep
-their own counters, so the effective limit doubles. A shared store — Redis — is
-the usual answer. Not needed for one instance.
+**It is per instance — and this one is not hypothetical.**
+
+The counters live in that 10 MB shared memory zone, and "shared" means shared
+*within one nginx process*. Two nginx containers keep two independent counters.
+
+This was discovered by running the same test against both deployments:
+
+```bash
+# Docker Compose — one web container
+200 200 200 429 429 429 429
+```
+
+```bash
+# Kubernetes — two web replicas
+200 200 200 200 200 200 200 200
+```
+
+Same image, same configuration, same eight requests. On Compose the limit fired
+after four. On Kubernetes it never fired at all.
+
+The manifest is the reason:
+
+```yaml
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 2
+```
+
+Two pods. The Service load-balances between them, so each nginx saw roughly four
+requests — exactly the burst allowance. Neither pod ever had reason to refuse.
+
+The effective limit is `6r/m × replicas`. Scale to ten pods and it is sixty a
+minute, silently.
+
+**This is the failure mode worth internalising: a per-instance limit gets weaker
+as you scale, and nothing warns you.** The config is unchanged, the tests pass,
+the deployment is healthy — and the protection quietly stopped working when a
+replica count went from 1 to 2.
+
+The fix is a shared counter. nginx can use Redis through a module; the more usual
+answer in Kubernetes is to rate limit at the ingress, where there is one
+enforcement point in front of all replicas. Neither is in this project, because
+the AWS deployment in Chapter 26 runs one instance under Compose — where, as the
+test above shows, the limit does work.
+
+That is a real constraint on the design, not a rounding error, and it belongs in
+the honest-limits list rather than in a footnote.
 
 **Ingest is unprotected.** `POST /api/documents` runs the embedding model, which
 costs CPU. A determined visitor could keep the box busy. It is not rate limited

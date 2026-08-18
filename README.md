@@ -207,6 +207,12 @@ without involving a model.
 - **Retrieval quality is not measured.** There is no labelled question/passage
   set here, so "it finds the right paragraph" is an observation on a handful of
   examples, not a number.
+- **The rate limit is per nginx instance.** The counters live in one process's
+  shared memory, so the effective limit is `6r/m × replicas`. Under Compose,
+  with one web container, eight rapid requests give `200 200 200 429 429 429
+  429`. On Kubernetes with `replicas: 2` the same eight all return `200` — each
+  pod saw only half of them. A shared counter, or rate limiting at the ingress,
+  is the fix; neither is here because the deployed instance runs one replica.
 - **Chunking splits on whitespace,** ignoring sentence and paragraph
   boundaries. Splitting on sentences would keep passages more readable.
 - **Answer quality depends entirely on the provider.** The local 3B model
