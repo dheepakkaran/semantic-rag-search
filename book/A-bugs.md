@@ -282,7 +282,7 @@ caveat. Running the same eight requests against both deployments showed it is no
 theoretical:
 
 ```
-Compose    (1 web container)  →  200 200 200 429 429 429 429
+Compose    (1 web container)  →  200 200 200 200 429 429 429 429
 Kubernetes (2 web replicas)   →  200 200 200 200 200 200 200 200
 ```
 

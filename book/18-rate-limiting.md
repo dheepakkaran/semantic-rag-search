@@ -155,7 +155,7 @@ This was discovered by running the same test against both deployments:
 
 ```bash
 # Docker Compose — one web container
-200 200 200 429 429 429 429
+200 200 200 200 429 429 429 429
 ```
 
 ```bash
