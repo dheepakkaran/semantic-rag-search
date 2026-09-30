@@ -201,16 +201,32 @@ questions a little bit. The score looks better and the retrieval is worse.
 This is why I picked 120 by measuring instead of copying a number from a blog
 post.
 
-### The gap: I have no labelled test set
+### What I measured: does retrieval find the right passage?
 
-I do not have a set of questions with known-correct passages, so I cannot tell
-you a recall number for this system.
+`python-service/eval/run.py` runs twenty questions, each labelled with a phrase
+that appears only in the passage that answers it:
 
-"It finds the right paragraph" is an observation over a handful of examples I
-wrote myself. That is enough to catch something obviously broken. It is not
-enough to claim a quality figure, and I am not going to present it as one.
+```
+  recall@1   how often the best passage is the right one
+  recall@4   how often the right one is among the four the model sees
+  MRR        1/rank of the right passage, averaged
+```
 
-Building that test set is [item 1 of what I would do next](#10-what-i-would-do-next).
+**recall@4 is the number that matters**, because four passages is what `ask()`
+puts in the prompt. CI runs this on every push and **fails the build when
+recall@4 falls below 0.90**, so a retrieval regression cannot land quietly.
+That matters because this class of bug throws no error: the system keeps
+answering, just from the wrong paragraph.
+
+The questions are written to share as few words as possible with the passage
+they point at, so the score reflects the embedding rather than accidental word
+overlap. `eval/distractors.txt` is in the corpus on purpose: without it there
+are five chunks and k is four, so recall@4 would be 1.00 by arithmetic rather
+than by retrieval working.
+
+**Honest limit:** twenty questions over one document, written by the person who
+wrote the system. Enough to catch a regression, not enough to claim a quality
+number. A real evaluation needs questions someone else wrote.
 
 ---
 
@@ -369,11 +385,11 @@ tests and the code shared my assumptions. A second environment did not.
 
 In the order I would actually do them.
 
-**1. Build a labelled evaluation set.** Twenty questions, each with the passage
-that should be retrieved, written to share as few words as possible with the
-passage. Then `recall@k` and MRR become real numbers, CI can fail when they
-drop, and [section 6](#6-result-accuracy) stops having a hole in it. This is
-first because everything below is a change I currently cannot prove helps.
+**1. Get questions written by somebody else.** The twenty in `eval/` were
+written by the same person who wrote the system, which is the one weakness the
+measurement cannot fix by itself. Questions from someone who has read the notes
+but not the code would turn the current number from a regression guard into a
+quality claim.
 
 **2. Cache the vectors in memory.** Right now they are reloaded from MongoDB on
 every query. Fine at a few thousand chunks, wasteful past that — and the fix is
