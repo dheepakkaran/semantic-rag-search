@@ -1,0 +1,20 @@
+{"question": "what is a network like before it has learned anything?", "expect": "random weights"}
+{"question": "how does it know it is doing badly?", "expect": "called the loss"}
+{"question": "what is the single number being made smaller?", "expect": "called the loss"}
+{"question": "what decides how big each adjustment is?", "expect": "learning rate"}
+{"question": "what goes wrong if the adjustments are too big?", "expect": "overshoot"}
+{"question": "what happens if the steps are tiny?", "expect": "training crawls"}
+{"question": "how is this made affordable for millions of parameters?", "expect": "Backpropagation"}
+{"question": "which bit of calculus lets the work be reused?", "expect": "chain rule"}
+{"question": "what is it called when a model aces practice and fails for real?", "expect": "This is overfitting"}
+{"question": "how can I tell memorisation is happening?", "expect": "validation loss starts climbing"}
+{"question": "why hold some examples back?", "expect": "validation set"}
+{"question": "how do I stop my network memorising?", "expect": "Weight decay"}
+{"question": "what discourages the model leaning on one input?", "expect": "penalty for large weights"}
+{"question": "what stops the network relying on a single route?", "expect": "Dropout"}
+{"question": "when should training be halted?", "expect": "Early stopping"}
+{"question": "what helps more than any of those tricks?", "expect": "More data"}
+{"question": "how is a piece of text turned into numbers?", "expect": "stands in for a piece of text"}
+{"question": "how is closeness in meaning calculated?", "expect": "cosine similarity"}
+{"question": "why does the size of a vector not matter?", "expect": "ignores their length"}
+{"question": "when does the comparison become a simple multiplication?", "expect": "dot product"}

@@ -1,0 +1,67 @@
+A database index is a separate structure that stores the values of one or more
+columns in sorted order alongside pointers back to the rows they came from.
+Without one, answering a query means reading every row in the table and
+discarding the ones that do not match. With one, the engine can jump straight
+to the range it needs. The cost is paid on writes: every insert and update has
+to keep the index in step with the table, so an index that is never read is
+pure overhead. Indexes also take disk space, often a substantial fraction of
+the table itself. The usual advice is to add one when a query is slow and you
+can see from the plan that it is scanning, not before.
+
+HTTP caching works through headers that let a response be reused instead of
+fetched again. Cache-Control says how long a response stays fresh and who is
+allowed to store it. ETag gives the response a version marker; the next
+request sends it back in If-None-Match, and the server replies 304 Not
+Modified with an empty body if nothing changed. That saves the bandwidth of
+the body but still costs a round trip. A long max-age avoids the round trip
+entirely, at the risk of serving something stale. The common resolution is to
+put a content hash in the filename, so the URL changes whenever the bytes do
+and the response can be cached forever.
+
+A branch in Git is nothing more than a movable pointer to a commit. Creating
+one writes a file containing forty characters of hexadecimal, which is why it
+is instant regardless of repository size. Commits themselves are immutable:
+each one records a tree, a parent and a message, and its identity is the hash
+of those contents. Rebasing does not move commits, it creates new ones with
+the same changes and different parents, which is why the hashes change and why
+a rebase of anything already pushed needs a force push. Merging instead writes
+a commit with two parents, keeping both histories intact at the cost of a
+messier graph.
+
+A decision tree splits the data one question at a time. At each node it picks
+the feature and threshold that best separates the classes, measured by
+something like Gini impurity or information gain, and repeats on each side
+until a stopping rule fires. The appeal is that the result can be read: a path
+from root to leaf is a sequence of conditions a person can follow. Left
+unconstrained, a tree keeps splitting until every leaf is pure, which fits the
+training data perfectly and generalises poorly, so depth and minimum leaf size
+are usually capped. Forests average many trees grown on resampled data, which
+gives up the readability and buys accuracy.
+
+K-means partitions points into k groups by alternating two steps: assign every
+point to the nearest centre, then move each centre to the mean of the points
+assigned to it. It converges quickly but only to a local optimum, so the
+result depends on where the centres started; running it several times with
+different starts and keeping the best is standard. The number of groups has to
+be chosen in advance, which is the awkward part, since the value that fits
+best is usually the largest one tried. It also assumes groups are roughly
+spherical and similar in size, which is why it does poorly on elongated or
+nested shapes.
+
+Rate limiting protects a resource from being consumed faster than it can be
+replaced. A token bucket holds a number of tokens that refills at a fixed
+rate; each request takes one, and a request arriving at an empty bucket is
+refused. The bucket size sets how large a burst is tolerated, and the refill
+rate sets the sustained throughput. A fixed window counter is simpler but
+allows twice the intended rate across a window boundary, since a caller can
+spend a full allowance at the end of one window and again at the start of the
+next. Sliding windows fix that at the cost of keeping more state.
+
+Message queues decouple a producer from a consumer so that neither has to be
+available at the same moment. The producer writes and returns; the consumer
+reads when it can. This turns a synchronous dependency into a buffer, which
+absorbs bursts and survives a consumer restart, but it also means the work is
+no longer done by the time the caller gets a response. Delivery is usually at
+least once rather than exactly once, so consumers have to be written to
+tolerate seeing the same message twice, normally by making the handler
+idempotent or by recording processed message ids.

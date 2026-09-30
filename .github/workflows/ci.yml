@@ -38,6 +38,12 @@ jobs:
 
       - run: pytest -q
 
+      # pytest proves the plumbing works. This proves retrieval finds the
+      # right passage, and fails the build when recall@4 drops below 0.90 --
+      # the kind of regression that stays silent because nothing throws.
+      - name: Retrieval quality
+        run: python eval/run.py
+
   node-api:
     name: node-api
     runs-on: ubuntu-latest
