@@ -1,0 +1,286 @@
+{
+ "answer_model": "claude-haiku-5-5",
+ "prompt": "python-service/rag/pipeline.py PROMPT",
+ "questions": [
+  {
+   "q": "Why are the chunks 120 words long?",
+   "top": [
+    {
+     "id": 63,
+     "doc": "05-embeddings",
+     "score": 0.593
+    },
+    {
+     "id": 47,
+     "doc": "04-chunking",
+     "score": 0.593
+    },
+    {
+     "id": 37,
+     "doc": "04-chunking",
+     "score": 0.592
+    },
+    {
+     "id": 41,
+     "doc": "04-chunking",
+     "score": 0.588
+    }
+   ],
+   "expected_in_top4": true,
+   "unanswerable": false,
+   "answer": "The notes do not give a complete justification for the 120-word figure, but they point to a few reasons. Chunks must be long enough to carry meaning: a very short passage, such as a single ten-word sentence, gives the embedding too little text, so its vector becomes generic and weak [1]. Documents also need splitting, because sending a whole document to the model is expensive and buries the relevant sentence in noise [3]. The notes say the size was chosen by measurement, not by convention, and that a chunk that is too large or too small has specific failure modes [4]. The notes also indicate that a chunk can become too small to be \"about anything in particular\" [2]. However, the notes cut off before stating the measured result that led to 120, so I do not know the exact reasoning behind that number."
+  },
+  {
+   "q": "Why does the project use two databases?",
+   "top": [
+    {
+     "id": 143,
+     "doc": "11-two-databases",
+     "score": 0.576
+    },
+    {
+     "id": 147,
+     "doc": "11-two-databases",
+     "score": 0.506
+    },
+    {
+     "id": 148,
+     "doc": "11-two-databases",
+     "score": 0.421
+    },
+    {
+     "id": 142,
+     "doc": "10-fastapi-service",
+     "score": 0.404
+    }
+   ],
+   "expected_in_top4": true,
+   "unanswerable": false,
+   "answer": "The notes suggest the project's two-database design is not strictly necessary. The author warns that using two databases in a student project is often r\u00e9sum\u00e9 padding, and that the honest default is one database unless there is a reason for a second [1]. The split is justified by the grain of the data: the system stores document metadata and chunks of different kinds, and separating them gives a cleaner query for citation titles [2]. The notes say this costs one more container, and that the benefit only becomes a real advantage at large scale, such as a hundred thousand documents. At five documents, a single PostgreSQL instance with documents and chunks tables would work fine [2]. The notes advise framing it as a design choice with known costs, not as a necessity [3]."
+  },
+  {
+   "q": "What happens when the Gemini daily quota runs out?",
+   "top": [
+    {
+     "id": 235,
+     "doc": "17-fallback",
+     "score": 0.522
+    },
+    {
+     "id": 133,
+     "doc": "10-fastapi-service",
+     "score": 0.482
+    },
+    {
+     "id": 421,
+     "doc": "C-glossary",
+     "score": 0.468
+    },
+    {
+     "id": 132,
+     "doc": "10-fastapi-service",
+     "score": 0.457
+    }
+   ],
+   "expected_in_top4": true,
+   "unanswerable": false,
+   "answer": "When the Gemini daily quota runs out, the provider returns a 429 RESOURCE_EXHAUSTED error saying the limit has been exceeded and suggesting a retry time. The original /ask handler did not catch the resulting LLMError, so FastAPI returned a generic 500 Internal Server Error, which wrongly signals a bug in the service [2][4]. The notes describe this failure as recoverable, since retrieval still works and only generation is missing [1]. The intended fix is to try providers in order, handing the same prompt to the next provider when one refuses [1]. A 429 is classed as retryable because it concerns the provider rather than the request, so it is worth trying elsewhere [3]. The notes also list a mock provider and Ollama as fallback options in the chain [3]."
+  },
+  {
+   "q": "How does CI stop a retrieval regression from being merged?",
+   "top": [
+    {
+     "id": 2,
+     "doc": "01-why-keyword-search-fails",
+     "score": 0.391
+    },
+    {
+     "id": 27,
+     "doc": "03-what-rag-actually-is",
+     "score": 0.354
+    },
+    {
+     "id": 1,
+     "doc": "01-why-keyword-search-fails",
+     "score": 0.354
+    },
+    {
+     "id": 35,
+     "doc": "03-what-rag-actually-is",
+     "score": 0.351
+    }
+   ],
+   "expected_in_top4": false,
+   "unanswerable": false,
+   "answer": "I do not know. The notes do not mention continuous integration or any process for blocking a retrieval regression from being merged. They do say that the two halves of the system should be kept separately testable and that, when something looks wrong, you should check the retrieved passages first to see whether retrieval gave the model the right source [2], but they do not describe how that testing is automated or enforced."
+  },
+  {
+   "q": "Why is there no vector database?",
+   "top": [
+    {
+     "id": 275,
+     "doc": "19-measuring",
+     "score": 0.523
+    },
+    {
+     "id": 274,
+     "doc": "19-measuring",
+     "score": 0.418
+    },
+    {
+     "id": 10,
+     "doc": "01-why-keyword-search-fails",
+     "score": 0.39
+    },
+    {
+     "id": 155,
+     "doc": "11-two-databases",
+     "score": 0.381
+    }
+   ],
+   "expected_in_top4": false,
+   "unanswerable": false,
+   "answer": "The notes say the book deliberately omits a vector database because, at this size, it costs more than it gives. The author states that a vector database is not used \"because for this problem, at this size, they cost more than they give\" [3]. The reasoning is that at around 5,000 chunks the similarity scan is only about 2% of a query, so an index would save very little [2].\n\nThe notes also make clear this is a claim about scale rather than a blanket rule. Ranking time grows roughly linearly, reaching about 16 ms at a million chunks, where ranking would be several times the encoding cost and an index would clearly be right [2]. The author describes the honest position as narrow: the choice holds at small sizes and stops holding well before a million chunks [2].\n\nThe current code also has a known limit. It reads every vector from MongoDB on each query, which the module docstring says is fine into the low thousands of chunks, while noting that past that point an in-process cache or a real vector index would be needed, and that neither is worth adding for a personal notes collection [4]."
+  },
+  {
+   "q": "What was the nginx caching bug?",
+   "top": [
+    {
+     "id": 306,
+     "doc": "21-compose",
+     "score": 0.719
+    },
+    {
+     "id": 307,
+     "doc": "22-nginx-dns",
+     "score": 0.664
+    },
+    {
+     "id": 398,
+     "doc": "A-bugs",
+     "score": 0.65
+    },
+    {
+     "id": 316,
+     "doc": "22-nginx-dns",
+     "score": 0.521
+    }
+   ],
+   "expected_in_top4": true,
+   "unanswerable": false,
+   "answer": "The nginx caching bug was a 502 Bad Gateway that appeared after one service was rebuilt. Rebuilding the Node service alone left the site broken, even though the Node container was running and healthy [2]. The cause was that nginx resolves a `proxy_pass` hostname once at startup and caches the address indefinitely. After the rebuild, `node-api` had a new address (172.18.0.4), but nginx was still connecting to the old one (172.18.0.3) [3]. The fix was to add a `resolver` directive and place the upstream in a variable, because a literal hostname is cached even when a resolver is configured [3]. The notes say this was proven by having another container take the freed address, which forced `node-api` to be reached at a new one [3]. The bug only shows up on a redeployment of a single service, not on a first deployment, and no unit test covers it [4]."
+  },
+  {
+   "q": "How much does it cost to run on AWS?",
+   "top": [
+    {
+     "id": 378,
+     "doc": "27-cost",
+     "score": 0.616
+    },
+    {
+     "id": 365,
+     "doc": "26-aws",
+     "score": 0.537
+    },
+    {
+     "id": 364,
+     "doc": "26-aws",
+     "score": 0.499
+    },
+    {
+     "id": 363,
+     "doc": "26-aws",
+     "score": 0.478
+    }
+   ],
+   "expected_in_top4": true,
+   "unanswerable": false,
+   "answer": "Running the project on AWS Lightsail costs $12 per month for the 2 GB plan, which works out to $0.0164 per hour [1][2]. Six months of continuous running comes to $72, and the free plan's credits ($100, rising to $200 after onboarding tasks) cover that [1]. The 1 GB plan is cheaper at $7 per month, but the notes say it lacks the memory needed to build the Python image, so it isn't a viable option [3]."
+  },
+  {
+   "q": "How does the interface show where an answer came from?",
+   "top": [
+    {
+     "id": 27,
+     "doc": "03-what-rag-actually-is",
+     "score": 0.413
+    },
+    {
+     "id": 206,
+     "doc": "15-designing-for-trust",
+     "score": 0.395
+    },
+    {
+     "id": 106,
+     "doc": "08-grounding",
+     "score": 0.348
+    },
+    {
+     "id": 23,
+     "doc": "03-what-rag-actually-is",
+     "score": 0.347
+    }
+   ],
+   "expected_in_top4": true,
+   "unanswerable": false,
+   "answer": "The interface never hides the sources. After the answer, it shows the model that produced it and then a \"Grounded on\" heading, with the supporting passages displayed immediately below [2]. The designers considered a \"show sources\" disclosure that hides them behind a click, but the notes indicate they chose always-visible passages so the reader can check the answer in seconds [2]. This also lets a developer debug quickly: when something looks wrong, you glance at the sources to see whether retrieval supplied the right passage at all [1]."
+  },
+  {
+   "q": "Why does keyword search fail?",
+   "top": [
+    {
+     "id": 0,
+     "doc": "01-why-keyword-search-fails",
+     "score": 0.56
+    },
+    {
+     "id": 1,
+     "doc": "01-why-keyword-search-fails",
+     "score": 0.513
+    },
+    {
+     "id": 2,
+     "doc": "01-why-keyword-search-fails",
+     "score": 0.475
+    },
+    {
+     "id": 86,
+     "doc": "07-testing-retrieval",
+     "score": 0.447
+    }
+   ],
+   "expected_in_top4": true,
+   "unanswerable": false,
+   "answer": "Keyword search fails because it matches characters rather than meanings, so it can only find words you already know. As the notes put it, Ctrl+F \"finds the words you already know. It cannot find the words you are looking for\" [2]. Two sentences about the same idea can share almost no words, so a character-matching search misses the connection even when a human sees it at once [2][3]. The notes call this the vocabulary mismatch problem: the person asking a question and the person who wrote the answer rarely choose the same words, since a student might write \"stop memorising\" while a textbook writes \"regularisation\" [3]."
+  },
+  {
+   "q": "What is the capital of France?",
+   "top": [
+    {
+     "id": 306,
+     "doc": "21-compose",
+     "score": 0.199
+    },
+    {
+     "id": 203,
+     "doc": "14-frontend",
+     "score": 0.134
+    },
+    {
+     "id": 202,
+     "doc": "14-frontend",
+     "score": 0.128
+    },
+    {
+     "id": 218,
+     "doc": "15-designing-for-trust",
+     "score": 0.127
+    }
+   ],
+   "expected_in_top4": null,
+   "unanswerable": true,
+   "answer": "I do not know. The notes cover a development proxy setup, a build step, a TypeScript result type, and CSS layout, but none of them mention the capital of France."
+  }
+ ]
+}

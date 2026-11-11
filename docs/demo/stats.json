@@ -1,0 +1,10 @@
+{
+ "chunks": 432,
+ "chapters": 30,
+ "words": 50494,
+ "embed_seconds_cpu": 16.84,
+ "index_kb": 558.5,
+ "int8_top4_same_as_float32": "9/10",
+ "sample_questions_right_chapter_in_top4": "7/9",
+ "answer_cost_usd": 0.0024
+}

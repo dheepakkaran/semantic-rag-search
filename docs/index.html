@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>semantic-rag-search</title>
+<meta name="description" content="A full-stack RAG app that answers from your own notes with cited passages. Try the retrieval live: a 50,000-word book searched by meaning, entirely in your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f6f3; --panel:#ffffff; --ink:#191919; --ink2:#4a4a48; --muted:#8a8984; --line:#e3e1db;
+  --accent:#264f78; --accent-soft:#e7eef6; --good:#1f7a4d; --good-soft:#e3f2ea; --warn:#8a5a00; --warn-soft:#fbf1dc;
+  --btn:#191919; --btn-ink:#ffffff; --mark:#fff2b3;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#131313; --panel:#1b1b1b; --ink:#ededeb; --ink2:#bdbcb8; --muted:#85847f; --line:#2c2c2a;
+    --accent:#8db4dc; --accent-soft:#1c2733; --good:#5cc08a; --good-soft:#15251c; --warn:#e0b45a; --warn-soft:#2a2214;
+    --btn:#ededeb; --btn-ink:#131313; --mark:#4a3f12;
+  }
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font:300 18px/1.55 Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-variant-ligatures:none}
+.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid transparent;transition:border-color .2s}
+.top.scrolled{border-color:var(--line)}
+.top .in{max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:8px;height:60px;padding:0 24px}
+.brand{font:500 14px Inter;text-decoration:none;margin-right:auto}
+.brand span{color:var(--muted);font-weight:400}
+.top a.l{font:500 13.5px Inter;text-decoration:none;padding:7px 11px;border-radius:6px;color:var(--ink2)}
+.top a.l:hover{background:var(--panel)}
+.screen{min-height:92svh;display:flex;align-items:center;padding:72px 24px}
+.wrap{width:100%;max-width:760px;margin:0 auto}
+.wrap.wide{max-width:960px}
+.step{display:flex;align-items:center;gap:10px;font:400 15px Inter;color:var(--accent);margin-bottom:16px}
+.step b{font-weight:500}
+h1,h2{font-weight:400;letter-spacing:-.025em}
+h1{font-size:clamp(40px,6.4vw,70px);line-height:1.05}
+h2{font-size:clamp(28px,4vw,42px);line-height:1.15}
+.lead{font-size:clamp(18px,2.1vw,22px);color:var(--ink2);margin-top:20px;max-width:640px}
+.small{font-size:15px;color:var(--muted);margin-top:18px;max-width:660px}
+.btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font:500 16.5px Inter;padding:11px 18px;border-radius:6px;background:var(--btn);color:var(--btn-ink)}
+.btn:hover{opacity:.88}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.btn:focus-visible,.chip:focus-visible,.ask input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:32px;align-items:center}
+
+/* demo */
+.ask{display:flex;gap:10px;margin-top:28px}
+.ask input{flex:1;min-width:0;font:400 20px Inter;padding:14px 4px;border:0;border-bottom:2px solid var(--line);background:transparent;color:var(--ink);transition:border-color .2s}
+.ask input:focus{outline:none;border-color:var(--ink)}
+.ask input::placeholder{color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chip{all:unset;cursor:pointer;font-size:14.5px;padding:7px 12px;border-radius:6px;background:var(--accent-soft);color:var(--ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 30%,transparent)}
+.chip:hover{box-shadow:inset 0 0 0 1px var(--accent)}
+.status{font:400 13px "JetBrains Mono",monospace;color:var(--muted);margin-top:16px;min-height:20px}
+.answer{margin-top:26px;background:var(--panel);border-radius:8px;padding:20px 22px;box-shadow:inset 0 0 0 1px var(--line);display:none}
+.answer.on{display:block}
+.answer .lbl{font:500 12px "JetBrains Mono",monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.answer p{font-size:17px;margin-top:10px;color:var(--ink)}
+.answer .cite{font:500 12.5px "JetBrains Mono",monospace;color:var(--accent);text-decoration:none;padding:0 2px}
+.answer.idk{box-shadow:inset 0 0 0 1px var(--warn);background:var(--warn-soft)}
+.answer.free p{color:var(--ink2);font-size:15.5px}
+.hits{margin-top:18px;display:grid;gap:10px}
+.hit{background:var(--panel);border-radius:8px;padding:14px 18px;box-shadow:inset 0 0 0 1px var(--line);animation:up .35s ease both}
+.hit:nth-child(2){animation-delay:.05s}.hit:nth-child(3){animation-delay:.1s}.hit:nth-child(4){animation-delay:.15s}
+@keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.hit .h{display:flex;align-items:baseline;gap:10px;font-size:14px}
+.hit .n{font:500 12.5px "JetBrains Mono",monospace;color:var(--accent)}
+.hit .t{font-weight:500;color:var(--ink);text-decoration:none}
+.hit .t:hover{text-decoration:underline}
+.hit .s{margin-left:auto;font:400 12.5px "JetBrains Mono",monospace;color:var(--muted);white-space:nowrap}
+.hit .meter{height:3px;background:var(--line);border-radius:3px;margin:8px 0 10px;overflow:hidden}
+.hit .meter i{display:block;height:100%;background:var(--ink)}
+.hit .x{font-size:14.5px;color:var(--ink2);line-height:1.6}
+.hit .x mark{background:var(--mark);color:inherit;border-radius:2px;padding:0 1px}
+
+/* facts */
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:34px}
+.facts .v{font-size:clamp(44px,6vw,64px);font-weight:300;letter-spacing:-.04em;line-height:1}
+.facts .v small{font-size:.4em;color:var(--muted);margin-left:4px}
+.facts .l{font-size:15px;color:var(--muted);margin-top:8px}
+.list{margin-top:28px;border-top:1px solid var(--line)}
+.list div{display:grid;grid-template-columns:44px 150px 1fr;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);font-size:16px;align-items:baseline}
+.list .n{font:400 13px "JetBrains Mono",monospace;color:var(--muted)}
+.list .t{font-weight:500}
+.list .d{color:var(--ink2)}
+.cmp{width:100%;border-collapse:collapse;margin-top:28px;font-size:15.5px}
+.cmp th,.cmp td{text-align:left;padding:12px 10px 12px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.cmp th{font:500 12px Inter;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.cmp td:first-child{color:var(--muted);width:30%}
+.gif{margin-top:30px;border-radius:10px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line),0 10px 30px -18px rgba(0,0,0,.35)}
+.gif img{display:block;width:100%;height:auto}
+.limits{margin-top:28px;display:grid;gap:12px}
+.limits div{display:flex;gap:14px;font-size:17px;color:var(--ink2)}
+.limits .k{flex:none;font:500 13px "JetBrains Mono",monospace;color:var(--muted);padding-top:3px;width:22px}
+pre{margin-top:26px;background:var(--panel);border-radius:8px;padding:20px 22px;box-shadow:inset 0 0 0 1px var(--line);font:400 13.5px/1.85 "JetBrains Mono",monospace;font-variant-ligatures:none;overflow-x:auto}
+pre .c{color:var(--muted)}
+.foot{margin-top:40px;font-size:13px;color:var(--muted);max-width:660px}
+.reveal{opacity:0;transform:translateY(12px);transition:opacity .6s ease,transform .6s ease}
+.reveal.on{opacity:1;transform:none}
+@media (max-width:760px){
+  body{font-size:17px}.screen{padding:56px 18px;min-height:0}.top .in{padding:0 14px}.brand span,.top a.hide{display:none}
+  .facts{grid-template-columns:1fr}.list div{grid-template-columns:34px 1fr}.list .d{grid-column:2}
+  .ask input{font-size:18px}.cmp td:first-child{width:38%}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<header class="top" id="top"><div class="in">
+  <a class="brand" href="#s1">semantic-rag-search <span>· a project by Dheepak Karan</span></a>
+  <a class="l hide" href="#try">Try it</a><a class="l hide" href="#app">The full app</a><a class="l" href="https://github.com/dheepakkaran/semantic-rag-search">GitHub ↗</a>
+</div></header>
+
+<main>
+<section class="screen" id="s1"><div class="wrap">
+  <h1 class="reveal">Ask your notes.<br>Get the answer and where it came from.</h1>
+  <p class="lead reveal">A full-stack RAG app: notes are split, embedded and searched by meaning, and the answer cites the passages it used. When the notes do not hold the answer, it says so.</p>
+  <div class="row reveal"><a class="btn" href="#try">Try the search live ↓</a><a class="btn ghost" href="#app">See the full app</a></div>
+  <p class="small reveal">FastAPI · Node.js · React · PostgreSQL · MongoDB · Docker · Kubernetes · AWS</p>
+</div></section>
+
+<section class="screen" id="try"><div class="wrap">
+  <div class="step reveal"><b>1</b> → Live, in your browser</div>
+  <h2 class="reveal">Ask the project's own 50,000-word book a question.</h2>
+  <p class="small reveal" style="margin-top:12px">The book that explains how this app was built, chunked by the app's own code into 432 passages and searched by meaning. The search runs on this page; nothing is sent to a server.</p>
+  <form class="ask" id="ask" autocomplete="off"><label for="q" class="sr" style="position:absolute;left:-9999px">Your question</label><input id="q" placeholder="Type a question, then press Enter" maxlength="200"><button class="btn" type="submit">Search</button></form>
+  <div class="chips" id="chips"></div>
+  <div class="status" id="status" aria-live="polite"></div>
+  <div class="answer" id="answer" aria-live="polite"></div>
+  <div class="hits" id="hits"></div>
+</div></section>
+
+<section class="screen" id="how"><div class="wrap">
+  <div class="step reveal"><b>2</b> → How it works</div>
+  <h2 class="reveal">Six steps, the same in the full app and on this page.</h2>
+  <div class="list reveal">
+    <div><span class="n">01</span><span class="t">Chunk</span><span class="d">120-word passages with 20 words of overlap, so no answer is cut at a boundary</span></div>
+    <div><span class="n">02</span><span class="t">Embed</span><span class="d">all-MiniLM-L6-v2 turns each passage into a 384-number vector of its meaning</span></div>
+    <div><span class="n">03</span><span class="t">Store</span><span class="d">the app: PostgreSQL for documents, MongoDB for chunks and vectors · this page: one 559 KB file</span></div>
+    <div><span class="n">04</span><span class="t">Search</span><span class="d">the question is embedded the same way; a dot product ranks every passage</span></div>
+    <div><span class="n">05</span><span class="t">Ground</span><span class="d">the top 4 passages go to the model with one rule: answer only from these, or say you do not know</span></div>
+    <div><span class="n">06</span><span class="t">Cite</span><span class="d">the answer points to [1]–[4], and the passages are always shown under it</span></div>
+  </div>
+</div></section>
+
+<section class="screen" id="app"><div class="wrap wide">
+  <div class="step reveal"><b>3</b> → The full app</div>
+  <h2 class="reveal">Upload notes, ask, check the sources.</h2>
+  <div class="gif reveal"><img src="demo.gif" alt="Recording of the full app: notes are uploaded, a question is asked, and the answer appears with the passages it was grounded on" loading="lazy" width="1280" height="720"></div>
+  <div class="facts reveal">
+    <div><div class="v">4.6<small>ms</small></div><div class="l">retrieval p50 at 5,000 chunks, measured on the deployed app</div></div>
+    <div><div class="v">5</div><div class="l">Docker services: React + nginx, Node API, FastAPI, PostgreSQL, MongoDB</div></div>
+    <div><div class="v">0.90</div><div class="l">CI fails the build if retrieval recall@4 drops below this</div></div>
+  </div>
+  <table class="cmp reveal">
+    <thead><tr><th></th><th>Full app (repository)</th><th>This page</th></tr></thead>
+    <tbody>
+      <tr><td>Chunking + embedding</td><td>same code, same model</td><td>same code, same model, precomputed</td></tr>
+      <tr><td>Search</td><td>FastAPI service, NumPy dot product</td><td>your browser (transformers.js), int8 vectors</td></tr>
+      <tr><td>Answers</td><td>Gemini → OpenAI → Ollama fallback chain, live</td><td>pre-generated for the sample questions with the app's prompt (Claude Haiku); other questions show passages only</td></tr>
+      <tr><td>Your own notes</td><td>upload through the React UI</td><td>not here: this page searches the book only</td></tr>
+    </tbody>
+  </table>
+</div></section>
+
+<section class="screen" id="honest"><div class="wrap">
+  <div class="step reveal"><b>4</b> → Read before you trust it</div>
+  <h2 class="reveal">What the demo shows, and what it does not.</h2>
+  <div class="limits reveal">
+    <div><span class="k">A</span>On the 9 answerable sample questions, the chapter I expected was in the top 4 for 7. For one miss the answer still came from the right idea in another chapter; for the other, retrieval missed and the model said “I do not know” instead of guessing.</div>
+    <div><span class="k">B</span>Answers on this page were generated once, ahead of time. The live part is the search.</div>
+    <div><span class="k">C</span>This tab runs the 8-bit version of the model and stores the passages as int8, so its ranking is close to the full app's, not identical: on the 10 sample questions, 3 or 4 of its top 4 are the same passages. Sample answers always show the exact passages they were written from.</div>
+    <div><span class="k">D</span>The search model loads from Hugging Face the first time (about 23 MB); after that it runs offline in the tab.</div>
+  </div>
+</div></section>
+
+<section class="screen" id="run"><div class="wrap">
+  <div class="step reveal"><b>5</b> → Run the full app</div>
+  <h2 class="reveal">One command with Docker.</h2>
+<pre class="reveal">git clone https://github.com/dheepakkaran/semantic-rag-search
+cd semantic-rag-search && cp .env.example .env   <span class="c"># add a Gemini, OpenAI or Ollama key</span>
+docker compose up --build                       <span class="c"># http://localhost:8080</span></pre>
+  <div class="row reveal"><a class="btn" href="https://github.com/dheepakkaran/semantic-rag-search">View on GitHub ↗</a><a class="btn ghost" href="https://github.com/dheepakkaran/semantic-rag-search/tree/main/book">Read the book</a></div>
+  <p class="foot reveal">Independent project by Dheepak Karan. The search model is all-MiniLM-L6-v2 (Apache 2.0), run with transformers.js. Not affiliated with any of the model providers.</p>
+</div></section>
+</main>
+
+<script type="module">
+const $ = id => document.getElementById(id);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("on"); io.unobserve(e.target); } }), {threshold: .15});
+document.querySelectorAll(".reveal").forEach(e => io.observe(e));
+addEventListener("scroll", () => $("top").classList.toggle("scrolled", scrollY > 10), {passive: true});
+
+const [index, samples] = await Promise.all([fetch("demo/index.json").then(r => r.json()), fetch("demo/samples.json").then(r => r.json())]);
+const raw = Uint8Array.from(atob(index.vectors_int8_b64), c => c.charCodeAt(0));
+const V = new Int8Array(raw.buffer), D = index.dim, N = index.chunks.length;
+const sampleBy = new Map(samples.questions.map(s => [s.q.toLowerCase(), s]));
+
+samples.questions.forEach(s => {
+  const b = document.createElement("button"); b.className = "chip"; b.type = "button"; b.textContent = s.q;
+  b.onclick = () => { $("q").value = s.q; run(s.q); };
+  $("chips").appendChild(b);
+});
+
+let extractor = null, loading = null;
+async function model() {
+  if (extractor) return extractor;
+  if (!loading) {
+    $("status").textContent = "loading the search model (about 23 MB, once)…";
+    loading = import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1")
+      .then(({pipeline}) => pipeline("feature-extraction", index.browser_model, {dtype: "q8"}))
+      .then(p => (extractor = p));
+  }
+  return loading;
+}
+
+async function embed(text) {
+  const out = await (await model())(text, {pooling: "mean", normalize: true});
+  return out.data;
+}
+window.__embed = embed;            // used by the page's own test
+
+function rank(q) {
+  const s = new Float32Array(N);
+  for (let i = 0; i < N; i++) { let d = 0; const o = i * D; for (let j = 0; j < D; j++) d += V[o + j] * q[j]; s[i] = d / index.scale; }
+  return [...s.keys()].sort((a, b) => s[b] - s[a]).slice(0, index.k).map(i => ({i, score: s[i]}));
+}
+window.__rank = rank;
+
+const esc = t => t.replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+function excerpt(text, query) {
+  const words = new Set(query.toLowerCase().match(/[a-z0-9]{4,}/g) || []);
+  let t = text.replace(/[#*`>|]/g, " ").replace(/\s+/g, " ").trim();
+  if (t.length > 420) t = t.slice(0, 420).replace(/\s\S*$/, "") + " …";
+  return esc(t).replace(/[A-Za-z0-9]{4,}/g, w => words.has(w.toLowerCase()) ? `<mark>${w}</mark>` : w);
+}
+
+async function run(query) {
+  query = query.trim(); if (!query) return;
+  $("hits").innerHTML = ""; $("answer").className = "answer";
+  try {
+    const t0 = performance.now(); const q = await embed(query); const t1 = performance.now();
+    const top = rank(q); const t2 = performance.now();
+    $("status").textContent = `embedded your question in ${Math.round(t1 - t0)} ms · ranked ${N} passages in ${(t2 - t1).toFixed(1)} ms · in this tab`;
+    show(query, top);
+  } catch (e) {
+    const s = sampleBy.get(query.toLowerCase());
+    if (s) { $("status").textContent = "the search model could not load here, so these are the saved results for this sample question"; show(query, s.top.map(h => ({i: h.id, score: h.score}))); }
+    else $("status").textContent = "the search model could not load (offline or blocked). Try a sample question.";
+  }
+}
+
+function show(query, live) {
+  const s = sampleBy.get(query.toLowerCase()), a = $("answer");
+  // For a sample question, show exactly the passages its answer was written from
+  // (the build ran full-precision MiniLM; this tab runs the 8-bit one, so the
+  // order can differ and citations must point to the right passage).
+  let top = live;
+  if (s) {
+    top = s.top.map(h => ({i: h.id, score: h.score}));
+    const both = live.filter(h => top.some(t => t.i === h.i)).length;
+    $("status").textContent += ` · your live search also found ${both} of the 4 passages this answer cites`;
+    const idk = /^i do not know/i.test(s.answer);
+    const text = esc(s.answer).replace(/\[(\d)\]/g, (m, n) => `<a class="cite" href="#hit${n}">[${n}]</a>`);
+    a.innerHTML = `<div class="lbl">${idk ? "Grounded: the passages do not hold this" : "Answer"} · pre-generated with the app's prompt from the 4 passages below</div><p>${text}</p>`;
+    a.className = "answer on" + (idk ? " idk" : "");
+  } else {
+    a.innerHTML = `<div class="lbl">Passages only</div><p>Answers are pre-generated for the sample questions; for your own question, these are the 4 passages the full app would hand to the model.</p>`;
+    a.className = "answer on free";
+  }
+  const max = Math.max(top[0].score, .01);
+  $("hits").innerHTML = top.map((h, n) => {
+    const c = index.chunks[h.i];
+    return `<div class="hit" id="hit${n + 1}"><div class="h"><span class="n">[${n + 1}]</span><a class="t" href="https://github.com/dheepakkaran/semantic-rag-search/blob/main/book/${c.doc}.md">${esc(c.title)}</a><span class="s">similarity ${h.score.toFixed(3)}</span></div><div class="meter"><i style="width:${Math.max(4, 100 * h.score / max)}%"></i></div><div class="x">${excerpt(c.text, query)}</div></div>`;
+  }).join("");
+}
+
+$("ask").onsubmit = e => { e.preventDefault(); run($("q").value); };
+$("q").addEventListener("focus", () => model().catch(() => {}), {once: true});
+</script>
+</body>
+</html>

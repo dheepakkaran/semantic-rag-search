@@ -19,3 +19,8 @@ dist/
 
 # raw screen recordings — the compressed docs/demo.mp4 is committed instead
 *.mov
+
+# static demo build
+static-demo/.venv/
+static-demo/.env
+static-demo/.cache/

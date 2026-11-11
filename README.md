@@ -1,5 +1,7 @@
 # Semantic RAG Search
 
+**Live demo (no server, runs in your browser):** [dheepakkaran.github.io/semantic-rag-search](https://dheepakkaran.github.io/semantic-rag-search/). Ask the project's own book a question; [`static-demo/`](static-demo/) shows how it is built.
+
 Ask a question about your own notes. Get an answer built only from the
 passages the system found — with those passages shown underneath it.
 

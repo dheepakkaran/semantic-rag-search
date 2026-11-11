@@ -1,0 +1,12 @@
+[
+ {"q": "Why are the chunks 120 words long?", "expect": ["04-chunking"]},
+ {"q": "Why does the project use two databases?", "expect": ["11-two-databases"]},
+ {"q": "What happens when the Gemini daily quota runs out?", "expect": ["17-fallback", "09-providers"]},
+ {"q": "How does CI stop a retrieval regression from being merged?", "expect": ["07-testing-retrieval", "25-ci"]},
+ {"q": "Why is there no vector database?", "expect": ["06-retrieval"]},
+ {"q": "What was the nginx caching bug?", "expect": ["22-nginx-dns"]},
+ {"q": "How much does it cost to run on AWS?", "expect": ["26-aws", "27-cost"]},
+ {"q": "How does the interface show where an answer came from?", "expect": ["15-designing-for-trust", "14-frontend"]},
+ {"q": "Why does keyword search fail?", "expect": ["01-why-keyword-search-fails"]},
+ {"q": "What is the capital of France?", "expect": [], "unanswerable": true}
+]
