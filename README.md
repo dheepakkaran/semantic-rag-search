@@ -2,6 +2,10 @@
 
 **Live demo (no server, runs in your browser):** [dheepakkaran.github.io/semantic-rag-search](https://dheepakkaran.github.io/semantic-rag-search/). Ask the project's own book a question; [`static-demo/`](static-demo/) shows how it is built.
 
+<a href="https://dheepakkaran.github.io/semantic-rag-search/#overview"><img src="docs/media/overview.webp" alt="35-second overview: notes are cut into passages, turned into numbers, searched by meaning, and answered with sources" width="100%"></a>
+
+<sub>35-second overview (silent preview). <a href="https://dheepakkaran.github.io/semantic-rag-search/#overview">Watch it with sound on the project page →</a></sub>
+
 Ask a question about your own notes. Get an answer built only from the
 passages the system found — with those passages shown underneath it.
 

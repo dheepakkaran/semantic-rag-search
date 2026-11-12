@@ -101,6 +101,8 @@ h2{font-size:clamp(28px,4vw,42px);line-height:1.15}
 pre{margin-top:26px;background:var(--panel);border-radius:8px;padding:20px 22px;box-shadow:inset 0 0 0 1px var(--line);font:400 13.5px/1.85 "JetBrains Mono",monospace;font-variant-ligatures:none;overflow-x:auto}
 pre .c{color:var(--muted)}
 .foot{margin-top:40px;font-size:13px;color:var(--muted);max-width:660px}
+.overview{margin:0 auto;max-width:960px;padding:24px 24px 8px}.overview video{display:block;width:100%;aspect-ratio:16/9;background:#131313;border:1px solid var(--line);border-radius:8px}.overview figcaption{font-size:14px;color:var(--muted);margin-top:12px;line-height:1.5}
+@media (max-width:760px){.overview{padding:16px 16px 0}}
 .reveal{opacity:0;transform:translateY(12px);transition:opacity .6s ease,transform .6s ease}
 .reveal.on{opacity:1;transform:none}
 @media (max-width:760px){
@@ -114,10 +116,15 @@ pre .c{color:var(--muted)}
 <body>
 <header class="top" id="top"><div class="in">
   <a class="brand" href="#s1">semantic-rag-search <span>· a project by Dheepak Karan</span></a>
-  <a class="l hide" href="#try">Try it</a><a class="l hide" href="#app">The full app</a><a class="l" href="https://github.com/dheepakkaran/semantic-rag-search">GitHub ↗</a>
+  <a class="l hide" href="#overview">Video</a><a class="l hide" href="#try">Try it</a><a class="l hide" href="#app">The full app</a><a class="l" href="https://github.com/dheepakkaran/semantic-rag-search">GitHub ↗</a>
 </div></header>
 
 <main>
+<figure class="overview" id="overview">
+<video controls playsinline preload="metadata" poster="media/overview.jpg"><source src="media/overview.mp4" type="video/mp4">Your browser cannot play this video. <a href="media/overview.mp4">Download it</a>.</video>
+<figcaption>The whole project in 35 seconds, with sound. Screens are the real app and the project's own book; timings were measured on a laptop CPU.</figcaption>
+</figure>
+
 <section class="screen" id="s1"><div class="wrap">
   <h1 class="reveal">Ask your notes.<br>Get the answer and where it came from.</h1>
   <p class="lead reveal">A full-stack RAG app: notes are split, embedded and searched by meaning, and the answer cites the passages it used. When the notes do not hold the answer, it says so.</p>
